@@ -17,11 +17,14 @@
 
 	<properties>
 		<java.version>1.8</java.version>
+		<spring-cloud.version>Dalston.SR5</spring-cloud.version>
 	</properties>
 
 	<dependencies>
-		<!-- ************************Cache**************************************** -->
-		<!-- https://mvnrepository.com/artifact/com.google.guava/guava -->
+<!-- 		<dependency> -->
+<!-- 			<groupId>org.springframework.cloud</groupId> -->
+<!-- 			<artifactId>spring-cloud-starter-consul-config</artifactId> -->
+<!-- 		</dependency> -->
 		<dependency>
 			<groupId>com.google.guava</groupId>
 			<artifactId>guava</artifactId>
@@ -43,17 +46,12 @@
 			<artifactId>spring-context-support</artifactId>
 			<version>4.3.10.RELEASE</version>
 		</dependency>
-		<dependency>
-			<groupId>org.springframework.cloud</groupId>
-			<artifactId>spring-cloud-config-client</artifactId>
-			<version>1.0.0.RELEASE</version>
-		</dependency>
+
 
 		<!-- https://mvnrepository.com/artifact/javax.validation/validation-api -->
 		<dependency>
 			<groupId>javax.validation</groupId>
 			<artifactId>validation-api</artifactId>
-			<version>2.0.1.Final</version>
 		</dependency>
 
 		<dependency>
@@ -118,11 +116,7 @@
 			<artifactId>spring-boot-starter-web</artifactId>
 		</dependency>
 
-		<dependency>
-			<groupId>com.googlecode.json-simple</groupId>
-			<artifactId>json-simple</artifactId>
-			<version>1.1</version>
-		</dependency>
+
 		<dependency>
 			<groupId>com.google.code.gson</groupId>
 			<artifactId>gson</artifactId>
@@ -207,6 +201,8 @@
 		<!-- <version>2.1.2.RELEASE</version> -->
 		<!-- </dependency> -->
 
+
+
 		<dependency>
 			<groupId>org.projectlombok</groupId>
 			<artifactId>lombok</artifactId>
@@ -229,6 +225,17 @@
 			<scope>test</scope>
 		</dependency>
 	</dependencies>
+	<dependencyManagement>
+		<dependencies>
+			<dependency>
+				<groupId>org.springframework.cloud</groupId>
+				<artifactId>spring-cloud-dependencies</artifactId>
+				<version>${spring-cloud.version}</version>
+				<type>pom</type>
+				<scope>import</scope>
+			</dependency>
+		</dependencies>
+	</dependencyManagement>
 
 	<build>
 		<plugins>
