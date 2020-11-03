@@ -16,5 +16,4 @@ public class BookUpdateRequest {
     private String author;
     private String Section;
     private List<String> gener;
-    private List<BIRD> bid;
 }

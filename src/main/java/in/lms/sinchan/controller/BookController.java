@@ -31,8 +31,7 @@ public class BookController {
                     @RequestBody BookCreateRequest bookCreateRequest) {
         BookCreateResponse response = bookService.persistBookInDB(bookCreateRequest);
         return ResponseEntity.status(HttpStatus.CREATED)
-                        .body(new ModelMap().addAttribute("msg", "Succesfully created")
-                                        .addAttribute("response", response));
+                        .body(new ModelMap().addAttribute("response", response));
     }
 
     @GetMapping(value = "/get/{id}")

@@ -20,8 +20,10 @@ import in.lms.sinchan.model.request.BookUpdateRequest;
 import in.lms.sinchan.model.response.BookCreateResponse;
 import in.lms.sinchan.repository.BookRepository;
 import in.lms.sinchan.service.BookService;
+import lombok.extern.slf4j.Slf4j;
 
 @Component("bookServiceImpl")
+@Slf4j
 public class BookServiceImpl implements BookService {
 
 
@@ -30,10 +32,14 @@ public class BookServiceImpl implements BookService {
     private Cache cache;
 
     @Autowired
+    private ObjectMapper objectMapper;
+
+    @Autowired
     private BookRepository bookRepository;
 
     @Override
     public BookCreateResponse persistBookInDB(BookCreateRequest bookCreateRequest) {
+        log.info(":::::BookServiceImpl Class, persistBookInDB method:::::");
         Book book = new Book();
         book.setAuthor(bookCreateRequest.getAuthor());
         book.setAvailable(true);
@@ -44,17 +50,18 @@ public class BookServiceImpl implements BookService {
         book.setSection(bookCreateRequest.getSection());
         book.setVersion(bookCreateRequest.getVersion());
         bookRepository.save(book);
-        cache.put("books", book);
         BookCreateResponse bookCreateResponse = new BookCreateResponse();
-        bookCreateResponse.setBookId(book.getBookId());
+        bookCreateResponse.setBookId(book.getId());
         bookCreateResponse.setMsg("Successfully created");
+        log.info(":::::BookCreateResponse : {}", bookCreateResponse);
         return bookCreateResponse;
     }
 
-    @Cacheable(value = "books", key = "#id", condition = "#id!=null", unless = "#result==null")
+    @Cacheable(value = "bookDetails", key = "#id", condition = "#id != 'rocky'")
     @Override
     public Book getBookDetails(String id) throws Exception {
-        Book book = bookRepository.findBookByBookId(id);
+        log.info("-----BookServiceImpl Class, getBookDetails method-----");
+        Book book = bookRepository.findBookById(id);
         if (ObjectUtils.isEmpty(book)) {
             throw new BookDoesNotExistException(
                             "Book does not exist. Please persist book details first");
@@ -62,47 +69,48 @@ public class BookServiceImpl implements BookService {
         return book;
     }
 
-    @Cacheable(value = "books")
+    @Cacheable(value = "allBooks")
     @Override
     public List<Book> getAllBooks() {
+        log.info("-----BookServiceImpl Class, getAllBooks method-----");
         return bookRepository.findAll();
     }
 
-    @CacheEvict(value = "books", key = "#id")
+    @CacheEvict(value = "bookDetails", key = "#id")
     @Override
     public void deleteBookDetails(String id) throws Exception {
-        Book book = bookRepository.findBookByBookId(id);
+        Book book = bookRepository.findBookById(id);
         if (ObjectUtils.isEmpty(book)) {
             throw new BookDoesNotExistException(
                             "Book does not exist. Please persist book details first");
         }
         bookRepository.delete(book);
         return;
-
     }
 
-    @CachePut(value = "books", key = "#bookUpdateRequest.bookName", unless = "#result==null")
     @SuppressWarnings("unchecked")
+    @CachePut(value = "bookDetails", key = "#id")
     @Override
     public void updateBookDetails(BookUpdateRequest bookUpdateRequest, String id) throws Exception {
-        Book book = bookRepository.findBookByBookId(id);
+        Book book = bookRepository.findBookById(id);
         if (ObjectUtils.isEmpty(book)) {
             throw new BookDoesNotExistException(
                             "Book does not exist. Please persist book details first");
         }
         JSONObject bookFromDB = (JSONObject) new JSONParser()
-                        .parse(new ObjectMapper().writeValueAsString(book));
+                        .parse(objectMapper.writeValueAsString(book));
         JSONObject bookFromPayload = (JSONObject) new JSONParser()
-                        .parse(new ObjectMapper().writeValueAsString(bookUpdateRequest));
+                        .parse(objectMapper.writeValueAsString(bookUpdateRequest));
         for (Object obj : bookFromPayload.keySet()) {
             String param = (String) obj;
             bookFromDB.put(param, bookFromPayload.get(param));
         }
-        bookRepository.save(new ObjectMapper().readValue(bookFromDB.toJSONString(), Book.class));
+        // objectMapper.setDateFormat(new SimpleDateFormat("MM/dd/yyyy hh:mm:ss aa"));
+        bookRepository.save(objectMapper.readValue(bookFromDB.toJSONString(), Book.class));
         return;
     }
 
-    @CacheEvict(value = "books", allEntries = true)
+    @CacheEvict(value = "bookdDetails", allEntries = true)
     @Override
     public void clearCache() {
         // TODO Auto-generated method stub

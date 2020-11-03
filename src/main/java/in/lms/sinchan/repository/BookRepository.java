@@ -7,6 +7,6 @@ import in.lms.sinchan.entity.Book;
 @Repository
 public interface BookRepository extends MongoRepository<Book, String> {
 
-    public Book findBookByBookId(String id);
+    public Book findBookById(String id);
 
 }
