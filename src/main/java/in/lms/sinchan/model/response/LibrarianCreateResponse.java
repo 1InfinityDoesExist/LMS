@@ -1,4 +1,4 @@
-package in.lms.sinchan.model.request;
+package in.lms.sinchan.model.response;
 
 import org.springframework.stereotype.Component;
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -6,8 +6,8 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 @Component
 @lombok.Data
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class RoleCreateRequest {
-    private String name;
-    private String description;
-    private String parentTenant;
+public class LibrarianCreateResponse {
+
+    private String id;
+    private String msg;
 }

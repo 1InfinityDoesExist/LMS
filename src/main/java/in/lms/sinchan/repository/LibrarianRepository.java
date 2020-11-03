@@ -7,4 +7,6 @@ import in.lms.sinchan.entity.Librarian;
 @Repository
 public interface LibrarianRepository extends MongoRepository<Librarian, String> {
 
+    public Librarian findLibrarianById(String id);
+
 }

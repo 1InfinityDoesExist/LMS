@@ -77,6 +77,7 @@ public class TenantServiceImpl implements TenantService {
         return;
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public void updateTenant(TenantUpdateRequest tenantUpdateRequest, String id) throws Exception {
         Tenant tenant = getTenant(id);

@@ -6,8 +6,10 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 @Component
 @lombok.Data
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class RoleCreateRequest {
-    private String name;
-    private String description;
-    private String parentTenant;
+public class LibrarianUpdateRequest {
+    private String firstName;
+    private String lastName;
+    private String email;
+    private String phone;
+    private String role;
 }

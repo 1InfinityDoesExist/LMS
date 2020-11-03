@@ -9,4 +9,6 @@ public interface RoleRepository extends MongoRepository<Role, String> {
 
     public Role findRoleById(String id);
 
+    public Role findRoleByName(String role);
+
 }
