@@ -65,4 +65,11 @@ public class BookController {
         return ResponseEntity.status(HttpStatus.OK)
                         .body(new ModelMap().addAttribute("msg", "Successfully updated"));
     }
+
+    @GetMapping(value = "/clearCache")
+    public ResponseEntity<?> clearCache() {
+        bookService.clearCache();
+        return ResponseEntity.status(HttpStatus.OK).body(
+                        new ModelMap().addAttribute("msg", "Successfully cleard all the cache"));
+    }
 }

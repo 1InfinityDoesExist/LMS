@@ -28,7 +28,7 @@ public class LibrarianController {
 
     @PostMapping(value = "/create")
     public ResponseEntity<?> persistLibrarianDetailsInDB(
-                    @RequestBody LibrarianCreateRequest librarianCreateReqest) {
+                    @RequestBody LibrarianCreateRequest librarianCreateReqest) throws Exception {
         LibrarianCreateResponse librarianResponse =
                         librarianService.saveLibrarianDetails(librarianCreateReqest);
         return ResponseEntity.status(HttpStatus.CREATED)
@@ -37,7 +37,7 @@ public class LibrarianController {
 
     @GetMapping(value = "/get")
     public ResponseEntity<?> getLibrarianById(
-                    @PathVariable(value = "id", required = true) String id) {
+                    @PathVariable(value = "id", required = true) String id) throws Exception {
         Librarian libraian = librarianService.getLibrarianById(id);
         return ResponseEntity.status(HttpStatus.OK)
                         .body(new ModelMap().addAttribute("msg", libraian));
@@ -52,7 +52,7 @@ public class LibrarianController {
 
     @DeleteMapping(value = "/delete/{id}")
     public ResponseEntity<?> deleteLibrarian(
-                    @PathVariable(value = "id", required = true) String id) {
+                    @PathVariable(value = "id", required = true) String id) throws Exception {
         librarianService.deleteLibrarian(id);
         return ResponseEntity.status(HttpStatus.OK)
                         .body(new ModelMap().addAttribute("msg", "Successfully Deleted"));
@@ -62,7 +62,7 @@ public class LibrarianController {
     @PutMapping(value = "/update/{id}")
     public ResponseEntity<?> updateLibrarianDetails(
                     @RequestBody LibrarianUpdateRequest librarianUpdateRequest,
-                    @PathVariable(value = "id", required = true) String id) {
+                    @PathVariable(value = "id", required = true) String id) throws Exception {
         librarianService.updateLibrarianDetails(librarianUpdateRequest, id);
         return ResponseEntity.status(HttpStatus.OK)
                         .body(new ModelMap().addAttribute("msg", "Successfully updated"));
