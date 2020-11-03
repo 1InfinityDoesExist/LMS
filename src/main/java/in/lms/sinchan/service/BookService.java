@@ -20,4 +20,6 @@ public interface BookService {
 
     public void updateBookDetails(BookUpdateRequest bookUpdateRequest, String id) throws Exception;
 
+    public void clearCache();
+
 }
