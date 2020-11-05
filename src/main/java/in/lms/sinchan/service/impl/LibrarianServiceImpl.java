@@ -17,6 +17,7 @@ import in.lms.sinchan.entity.Role;
 import in.lms.sinchan.exception.InvalidInput;
 import in.lms.sinchan.exception.LibrarianNotFound;
 import in.lms.sinchan.exception.MailNotSentException;
+import in.lms.sinchan.exception.RoleNotFoundException;
 import in.lms.sinchan.model.request.LibrarianCreateRequest;
 import in.lms.sinchan.model.request.LibrarianUpdateRequest;
 import in.lms.sinchan.model.response.LibrarianCreateResponse;
@@ -52,6 +53,8 @@ public class LibrarianServiceImpl implements LibrarianService {
         if (!ObjectUtils.isEmpty(librarianCreateReqest.getRole())) {
             Role role = roleRepository.findRoleByName(librarianCreateReqest.getRole());
             librarian.setRole(role.getId());
+        } else {
+            throw new RoleNotFoundException("Role does not exit, please create a role first");
         }
         librarian.setDateOfJoining(new Date());
         if (!ObjectUtils.isEmpty(librarianCreateReqest.getEmail())) {

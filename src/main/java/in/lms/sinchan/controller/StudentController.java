@@ -13,6 +13,10 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import in.lms.sinchan.entity.Student;
+import in.lms.sinchan.exception.InvalidInput;
+import in.lms.sinchan.exception.RoleNotFoundException;
+import in.lms.sinchan.exception.StudentNotFoundException;
+import in.lms.sinchan.exception.TenantNotFoundException;
 import in.lms.sinchan.model.request.StudentRequest;
 import in.lms.sinchan.model.request.StudentUpdateRequest;
 import in.lms.sinchan.model.response.StudentResponse;
@@ -28,18 +32,38 @@ public class StudentController {
     @PostMapping(value = "/create", consumes = "application/json", produces = "application/json")
     public ResponseEntity<?> saveStudent(@RequestBody StudentRequest studentRequest)
                     throws Exception {
-        StudentResponse studentResponse = studentService.persist(studentRequest);
-        return ResponseEntity.status(HttpStatus.CREATED)
-                        .body(new ModelMap().addAttribute("msg", "Successfully Created")
-                                        .addAttribute("response", studentResponse.getMsg()));
+        try {
+            StudentResponse studentResponse = studentService.persist(studentRequest);
+            return ResponseEntity.status(HttpStatus.CREATED)
+                            .body(new ModelMap().addAttribute("msg", "Successfully Created")
+                                            .addAttribute("response", studentResponse.getMsg()));
+        } catch (final TenantNotFoundException ex) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                            .body(new ModelMap().addAttribute("msg", ex.getMessage()));
+        } catch (final InvalidInput ex) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                            .body(new ModelMap().addAttribute("msg", ex.getMessage()));
+        } catch (final RoleNotFoundException ex) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                            .body(new ModelMap().addAttribute("msg", ex.getMessage()));
+        }
     }
 
     @GetMapping(value = "/get/{id}")
     public ResponseEntity<?> getStudentDetails(
                     @PathVariable(value = "id", required = true) String id) throws Exception {
-        Student student = studentService.getStudentDetails(id);
-        return ResponseEntity.status(HttpStatus.OK)
-                        .body(new ModelMap().addAttribute("response", student));
+        try {
+            Student student = studentService.getStudentDetails(id);
+            return ResponseEntity.status(HttpStatus.OK)
+                            .body(new ModelMap().addAttribute("response", student));
+        } catch (final StudentNotFoundException ex) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                            .body(new ModelMap().addAttribute("msg", ex.getMessage()));
+        } catch (final InvalidInput ex) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                            .body(new ModelMap().addAttribute("msg", ex.getMessage()));
+        }
+
     }
 
     @GetMapping(value = "/getAll")

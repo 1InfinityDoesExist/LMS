@@ -13,6 +13,9 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import in.lms.sinchan.entity.Tenant;
+import in.lms.sinchan.exception.InvalidInput;
+import in.lms.sinchan.exception.TenantAlreadyExistException;
+import in.lms.sinchan.exception.TenantNotFoundException;
 import in.lms.sinchan.model.request.TenantCreateRequest;
 import in.lms.sinchan.model.request.TenantUpdateRequest;
 import in.lms.sinchan.model.response.TenantCreateResponse;
@@ -28,18 +31,34 @@ public class TenantController {
     @PostMapping(value = "/create", consumes = "application/json", produces = "application/json")
     public ResponseEntity<?> persistTenantIntoDB(
                     @RequestBody TenantCreateRequest teanntCreateRequest) throws Exception {
-        TenantCreateResponse tenantCreateResponse =
-                        tenantService.persistTenantInDB(teanntCreateRequest);
-        return ResponseEntity.status(HttpStatus.CREATED)
-                        .body(new ModelMap().addAttribute("response", tenantCreateResponse));
+        try {
+            TenantCreateResponse tenantCreateResponse =
+                            tenantService.persistTenantInDB(teanntCreateRequest);
+            return ResponseEntity.status(HttpStatus.CREATED)
+                            .body(new ModelMap().addAttribute("response", tenantCreateResponse));
+        } catch (final TenantAlreadyExistException ex) {
+            return ResponseEntity.status(HttpStatus.CONFLICT)
+                            .body(new ModelMap().addAttribute("msg", ex.getMessage()));
+        } catch (final InvalidInput ex) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                            .body(new ModelMap().addAttribute("msg", ex.getMessage()));
+        }
     }
 
     @GetMapping(value = "/get/{id}")
     public ResponseEntity<?> getTenantById(@PathVariable(value = "id", required = true) String id)
                     throws Exception {
-        Tenant tenant = tenantService.getTenant(id);
-        return ResponseEntity.status(HttpStatus.OK)
-                        .body(new ModelMap().addAttribute("response", tenant));
+        try {
+            Tenant tenant = tenantService.getTenant(id);
+            return ResponseEntity.status(HttpStatus.OK)
+                            .body(new ModelMap().addAttribute("response", tenant));
+        } catch (final TenantNotFoundException ex) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                            .body(new ModelMap().addAttribute("msg", ex.getMessage()));
+        } catch (final InvalidInput ex) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                            .body(new ModelMap().addAttribute("msg", ex.getMessage()));
+        }
     }
 
     @GetMapping(value = "/get")
