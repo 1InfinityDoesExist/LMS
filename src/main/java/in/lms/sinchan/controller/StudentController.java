@@ -11,12 +11,15 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 import in.lms.sinchan.entity.Student;
 import in.lms.sinchan.exception.InvalidInput;
 import in.lms.sinchan.exception.RoleNotFoundException;
 import in.lms.sinchan.exception.StudentNotFoundException;
 import in.lms.sinchan.exception.TenantNotFoundException;
+import in.lms.sinchan.model.OtpVerificationDetails;
 import in.lms.sinchan.model.request.StudentRequest;
 import in.lms.sinchan.model.request.StudentUpdateRequest;
 import in.lms.sinchan.model.response.StudentResponse;
@@ -90,4 +93,29 @@ public class StudentController {
     }
 
 
+    @PostMapping(value = "/uploadImage/{email}")
+    public ResponseEntity<?> uploadImage(
+                    @RequestParam(value = "file", required = true) MultipartFile image,
+                    @PathVariable(value = "email", required = true) String email) throws Exception {
+        String imageUrl = studentService.uploadImageUrl(image, email);
+        return ResponseEntity.status(HttpStatus.OK)
+                        .body(new ModelMap().addAttribute("msg", "Successfully uploaded image.")
+                                        .addAttribute("image", imageUrl));
+    }
+
+    @PostMapping(value = "/verify")
+    public ResponseEntity<?> verifyStudentEmail(
+                    @RequestBody OtpVerificationDetails otpVerifyDetails) throws Exception {
+        try {
+            List<String> response = studentService.verifyStudentEmailAndMobile(otpVerifyDetails);
+            return ResponseEntity.status(HttpStatus.OK)
+                            .body(new ModelMap().addAttribute("msg", "KYC verification success."));
+        } catch (final StudentNotFoundException ex) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                            .body(new ModelMap().addAttribute("msg", ex.getMessage()));
+        } catch (final InvalidInput ex) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                            .body(new ModelMap().addAttribute("msg", ex.getMessage()));
+        }
+    }
 }
