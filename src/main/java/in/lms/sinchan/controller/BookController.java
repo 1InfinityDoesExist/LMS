@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import in.lms.sinchan.entity.Book;
+import in.lms.sinchan.exception.BookDoesNotExistException;
 import in.lms.sinchan.model.request.BookCreateRequest;
 import in.lms.sinchan.model.request.BookUpdateRequest;
 import in.lms.sinchan.model.response.BookCreateResponse;
@@ -37,9 +38,14 @@ public class BookController {
     @GetMapping(value = "/get/{id}")
     public ResponseEntity<?> getBooksByBookID(
                     @PathVariable(value = "id", required = true) String id) throws Exception {
-        Book book = bookService.getBookDetails(id);
-        return ResponseEntity.status(HttpStatus.OK)
-                        .body(new ModelMap().addAttribute("response", book));
+        try {
+            Book book = bookService.getBookDetails(id);
+            return ResponseEntity.status(HttpStatus.OK)
+                            .body(new ModelMap().addAttribute("response", book));
+        } catch (final BookDoesNotExistException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                            .body(new ModelMap().addAttribute("msg", e.getMessage()));
+        }
     }
 
     @GetMapping(value = "/getAll")
@@ -52,17 +58,27 @@ public class BookController {
     @DeleteMapping(value = "/delete/{id}")
     public ResponseEntity<?> deleteBookDetails(
                     @PathVariable(value = "id", required = true) String id) throws Exception {
-        bookService.deleteBookDetails(id);
-        return ResponseEntity.status(HttpStatus.OK)
-                        .body(new ModelMap().addAttribute("response", "Successfully deleted"));
+        try {
+            bookService.deleteBookDetails(id);
+            return ResponseEntity.status(HttpStatus.OK)
+                            .body(new ModelMap().addAttribute("response", "Successfully deleted"));
+        } catch (final BookDoesNotExistException ex) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                            .body(new ModelMap().addAttribute("msg", ex.getMessage()));
+        }
     }
 
     @PutMapping(value = "/update/{id}")
     public ResponseEntity<?> updateBookDetails(@RequestBody BookUpdateRequest bookUpdateRequest,
                     @PathVariable(value = "id", required = true) String id) throws Exception {
-        bookService.updateBookDetails(bookUpdateRequest, id);
-        return ResponseEntity.status(HttpStatus.OK)
-                        .body(new ModelMap().addAttribute("msg", "Successfully updated"));
+        try {
+            bookService.updateBookDetails(bookUpdateRequest, id);
+            return ResponseEntity.status(HttpStatus.OK)
+                            .body(new ModelMap().addAttribute("msg", "Successfully updated"));
+        } catch (final BookDoesNotExistException ex) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                            .body(new ModelMap().addAttribute("msg", ex.getMessage()));
+        }
     }
 
     @GetMapping(value = "/clearCache")

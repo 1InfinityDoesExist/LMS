@@ -14,6 +14,10 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import in.lms.sinchan.entity.Librarian;
+import in.lms.sinchan.exception.InvalidInput;
+import in.lms.sinchan.exception.LibrarianNotFound;
+import in.lms.sinchan.exception.MailNotSentException;
+import in.lms.sinchan.exception.RoleNotFoundException;
 import in.lms.sinchan.model.request.LibrarianCreateRequest;
 import in.lms.sinchan.model.request.LibrarianUpdateRequest;
 import in.lms.sinchan.model.response.LibrarianCreateResponse;
@@ -29,18 +33,34 @@ public class LibrarianController {
     @PostMapping(value = "/create")
     public ResponseEntity<?> persistLibrarianDetailsInDB(
                     @RequestBody LibrarianCreateRequest librarianCreateReqest) throws Exception {
-        LibrarianCreateResponse librarianResponse =
-                        librarianService.saveLibrarianDetails(librarianCreateReqest);
-        return ResponseEntity.status(HttpStatus.CREATED)
-                        .body(new ModelMap().addAttribute("", librarianResponse));
+        try {
+            LibrarianCreateResponse librarianResponse =
+                            librarianService.saveLibrarianDetails(librarianCreateReqest);
+            return ResponseEntity.status(HttpStatus.CREATED)
+                            .body(new ModelMap().addAttribute("response", librarianResponse));
+        } catch (final InvalidInput ex) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                            .body(new ModelMap().addAttribute("msg", ex.getMessage()));
+        } catch (final RoleNotFoundException ex) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                            .body(new ModelMap().addAttribute("msg", ex.getMessage()));
+        } catch (final MailNotSentException ex) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                            .body(new ModelMap().addAttribute("msg", ex.getMessage()));
+        }
     }
 
     @GetMapping(value = "/get")
     public ResponseEntity<?> getLibrarianById(
                     @PathVariable(value = "id", required = true) String id) throws Exception {
-        Librarian libraian = librarianService.getLibrarianById(id);
-        return ResponseEntity.status(HttpStatus.OK)
-                        .body(new ModelMap().addAttribute("msg", libraian));
+        try {
+            Librarian libraian = librarianService.getLibrarianById(id);
+            return ResponseEntity.status(HttpStatus.OK)
+                            .body(new ModelMap().addAttribute("msg", libraian));
+        } catch (final LibrarianNotFound ex) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                            .body(new ModelMap().addAttribute("msg", ex.getMessage()));
+        }
     }
 
     @GetMapping(value = "/getAll")
@@ -53,9 +73,14 @@ public class LibrarianController {
     @DeleteMapping(value = "/delete/{id}")
     public ResponseEntity<?> deleteLibrarian(
                     @PathVariable(value = "id", required = true) String id) throws Exception {
-        librarianService.deleteLibrarian(id);
-        return ResponseEntity.status(HttpStatus.OK)
-                        .body(new ModelMap().addAttribute("msg", "Successfully Deleted"));
+        try {
+            librarianService.deleteLibrarian(id);
+            return ResponseEntity.status(HttpStatus.OK)
+                            .body(new ModelMap().addAttribute("msg", "Successfully Deleted"));
+        } catch (final LibrarianNotFound ex) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                            .body(new ModelMap().addAttribute("msg", ex.getMessage()));
+        }
     }
 
 
@@ -63,8 +88,14 @@ public class LibrarianController {
     public ResponseEntity<?> updateLibrarianDetails(
                     @RequestBody LibrarianUpdateRequest librarianUpdateRequest,
                     @PathVariable(value = "id", required = true) String id) throws Exception {
-        librarianService.updateLibrarianDetails(librarianUpdateRequest, id);
-        return ResponseEntity.status(HttpStatus.OK)
-                        .body(new ModelMap().addAttribute("msg", "Successfully updated"));
+        try {
+            librarianService.updateLibrarianDetails(librarianUpdateRequest, id);
+            return ResponseEntity.status(HttpStatus.OK)
+                            .body(new ModelMap().addAttribute("msg", "Successfully updated"));
+        } catch (final LibrarianNotFound ex) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                            .body(new ModelMap().addAttribute("msg", ex.getMessage()));
+        }
+
     }
 }
