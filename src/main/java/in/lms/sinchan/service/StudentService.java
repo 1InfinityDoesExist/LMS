@@ -2,7 +2,9 @@ package in.lms.sinchan.service;
 
 import java.util.List;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 import in.lms.sinchan.entity.Student;
+import in.lms.sinchan.model.OtpVerificationDetails;
 import in.lms.sinchan.model.request.StudentRequest;
 import in.lms.sinchan.model.request.StudentUpdateRequest;
 import in.lms.sinchan.model.response.StudentResponse;
@@ -19,6 +21,11 @@ public interface StudentService {
     public void deleteStudent(String id) throws Exception;
 
     public List<String> updateStudent(StudentUpdateRequest studentUpdateRequest, String id)
+                    throws Exception;
+
+    public String uploadImageUrl(MultipartFile image, String studentId) throws Exception;
+
+    public List<String> verifyStudentEmailAndMobile(OtpVerificationDetails otpVerifyDetails)
                     throws Exception;
 
 }
