@@ -33,4 +33,5 @@ public class Book implements Serializable {
     private String author;
     private String Section;
     private List<String> gener;
+    private boolean isActive;
 }

@@ -157,7 +157,7 @@ public class BookServiceImpl implements BookService {
     }
 
     @Override
-    public void issueBookToStudent(BIRDRequest birdRequest) throws Exception {
+    public String issueBookToStudent(BIRDRequest birdRequest) throws Exception {
         log.info("-----BookServiceImpl Class, issueBookToStudent method-----");
         Student student = studentRepository.findStudentById(birdRequest.getIssuedBy());
         if (!ObjectUtils.isEmpty(student)) {
@@ -181,7 +181,7 @@ public class BookServiceImpl implements BookService {
                 studentRepository.save(student);
                 log.info(":::::student libraryDetails {}", student.getLibraryDetails());
 
-
+                return bird.getId();
             } else {
                 throw new NotEligible("Sutdent with id: " + student.getId()
                                 + " not eligible to issue any sort of book from LMS");
@@ -307,5 +307,11 @@ public class BookServiceImpl implements BookService {
             throw new InvalidInput("Issuer id must not be null or empty");
         }
         return true;
+    }
+
+    @Override
+    public List<Book> getAvailableBooks() {
+        List<Book> listOfBooks = bookRepository.findBookByIsActiveAndIsAvailable(true, true);
+        return listOfBooks;
     }
 }

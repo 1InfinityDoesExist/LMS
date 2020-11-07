@@ -1,3 +1,5 @@
+
+
 package in.lms.sinchan.controller;
 
 import java.util.List;
@@ -16,10 +18,14 @@ import org.springframework.web.bind.annotation.RestController;
 import in.lms.sinchan.entity.Book;
 import in.lms.sinchan.exception.BookDoesNotExistException;
 import in.lms.sinchan.exception.BookNotPersistedInDB;
+import in.lms.sinchan.exception.InvalidInput;
+import in.lms.sinchan.exception.NotEligible;
+import in.lms.sinchan.exception.StudentNotFoundException;
 import in.lms.sinchan.model.request.BIRDRequest;
 import in.lms.sinchan.model.request.BookCreateRequest;
 import in.lms.sinchan.model.request.BookUpdateRequest;
 import in.lms.sinchan.model.response.BookCreateResponse;
+import in.lms.sinchan.repository.BookRepository;
 import in.lms.sinchan.service.BookService;
 
 @RestController("bookController")
@@ -97,14 +103,37 @@ public class BookController {
 
     @PostMapping(value = "/issueBook")
     public ResponseEntity<?> issueBook(@RequestBody BIRDRequest birdRequest) throws Exception {
-        bookService.issueBookToStudent(birdRequest);
-        return ResponseEntity.status(HttpStatus.OK).body(new ModelMap().addAttribute("msg", ""));
+        try {
+            String birdId = bookService.issueBookToStudent(birdRequest);
+            return ResponseEntity.status(HttpStatus.OK)
+                            .body(new ModelMap().addAttribute("msg",
+                                            "Successfully book issues id : " + birdId));
+        } catch (final NotEligible ex) {
+            return ResponseEntity.status(HttpStatus.OK)
+                            .body(new ModelMap().addAttribute("msg", ex.getMessage()));
+        } catch (final StudentNotFoundException ex) {
+            return ResponseEntity.status(HttpStatus.OK)
+                            .body(new ModelMap().addAttribute("msg", ex.getMessage()));
+        }
     }
 
     @PostMapping(value = "/returnBook")
     public ResponseEntity<?> returnBook(@RequestBody BIRDRequest birdRequest) throws Exception {
-        bookService.returnBookToLMS(birdRequest);
+        try {
+            bookService.returnBookToLMS(birdRequest);
+            return ResponseEntity.status(HttpStatus.OK)
+                            .body(new ModelMap().addAttribute("msg",
+                                            "Successfully  return the book."));
+        } catch (final InvalidInput ex) {
+            return ResponseEntity.status(HttpStatus.OK)
+                            .body(new ModelMap().addAttribute("msg", ex.getMessage()));
+        }
+    }
+
+    @GetMapping(value = "/get/availableBooks")
+    public ResponseEntity<?> getListOfAvailableBooks() {
+        List<Book> listOfBooks = bookService.getAvailableBooks();
         return ResponseEntity.status(HttpStatus.OK)
-                        .body(new ModelMap().addAttribute("msg", "Successfully  return the book."));
+                        .body(new ModelMap().addAttribute("msg", listOfBooks));
     }
 }
