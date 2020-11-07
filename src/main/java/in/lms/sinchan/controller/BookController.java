@@ -102,7 +102,7 @@ public class BookController {
     }
 
     @PostMapping(value = "/returnBook")
-    public ResponseEntity<?> returnBook(@RequestBody BIRDRequest birdRequest) {
+    public ResponseEntity<?> returnBook(@RequestBody BIRDRequest birdRequest) throws Exception {
         bookService.returnBookToLMS(birdRequest);
         return ResponseEntity.status(HttpStatus.OK)
                         .body(new ModelMap().addAttribute("msg", "Successfully  return the book."));

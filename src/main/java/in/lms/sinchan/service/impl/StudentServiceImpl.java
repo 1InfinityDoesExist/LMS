@@ -3,6 +3,7 @@ package in.lms.sinchan.service.impl;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,6 +15,7 @@ import com.amazonaws.util.StringUtils;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import in.lms.sinchan.aws.AWSOperations;
 import in.lms.sinchan.email.EmailService;
+import in.lms.sinchan.entity.BIRD;
 import in.lms.sinchan.entity.OtpDetails;
 import in.lms.sinchan.entity.Role;
 import in.lms.sinchan.entity.Student;
@@ -249,4 +251,37 @@ public class StudentServiceImpl implements StudentService {
     }
 
 
+    @Override
+    public List<String> getStudentCurrentIssuedBooksList(String id) throws Exception {
+        Student student = studentRepository.findStudentById(id);
+        if (ObjectUtils.isEmpty(student)) {
+            throw new StudentNotFoundException("Student does not exist with id : " + id);
+        } else {
+            List<String> books = student.getLibraryDetails().stream()
+                            .filter(b -> b.isActive() == true ? true : false)
+                            .map(BIRD::getBookId).collect(Collectors.toList());
+            return books;
+        }
+    }
+
+    @Override
+    public List<BIRD> getLMSHistory(String id) throws Exception {
+        Student student = studentRepository.findStudentById(id);
+        if (ObjectUtils.isEmpty(student)) {
+            throw new StudentNotFoundException("Student does not exist with id : " + id);
+        } else {
+            return student.getLibraryDetails();
+        }
+    }
+
+    @Override
+    public List<String> getAllProfileImages(String email) throws Exception {
+        return awsOperations.getAllProfileImages(email, "imageProfile");
+    }
+
+    @Override
+    public void deleteProfileImage(String email, String image) {
+        awsOperations.deleteProfileImage(email, image, "imageProfile");
+
+    }
 }
