@@ -20,7 +20,6 @@ import in.lms.sinchan.entity.Book;
 import in.lms.sinchan.entity.Librarian;
 import in.lms.sinchan.entity.Student;
 import in.lms.sinchan.exception.BookDoesNotExistException;
-import in.lms.sinchan.exception.BookNotPersistedInDB;
 import in.lms.sinchan.exception.InvalidInput;
 import in.lms.sinchan.exception.LibrarianNotFound;
 import in.lms.sinchan.exception.NotEligible;
