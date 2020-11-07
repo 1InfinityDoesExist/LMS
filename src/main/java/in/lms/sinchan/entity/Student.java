@@ -2,18 +2,22 @@ package in.lms.sinchan.entity;
 
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.LinkedList;
 import java.util.List;
+import javax.persistence.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import in.lms.sinchan.model.Address;
-import in.lms.sinchan.model.LibraryDetails;
+import lombok.ToString;
 
 @Document(collection = "student")
 @lombok.Data
 @JsonInclude(JsonInclude.Include.NON_NULL)
+@ToString
 public class Student {
 
-    private String studentId;
+    @Id
+    private String id;
     private String firstName;
     private String lastName;
     private String email;
@@ -24,9 +28,10 @@ public class Student {
     private String role;
     private boolean isActive;
     private Date dob;
-    private List<LibraryDetails> libraryDetails = new ArrayList<>();
+    private List<BIRD> libraryDetails = new LinkedList<>();
     private String parentTenant;
     private String profileImageUrl;
     private boolean isEligibleToIssueBook;
+    private List<String> mostAwatedBooks = new ArrayList<>();
 
 }

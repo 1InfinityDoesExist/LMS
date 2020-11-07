@@ -4,7 +4,7 @@ import java.util.Date;
 import java.util.List;
 import org.springframework.stereotype.Component;
 import com.fasterxml.jackson.annotation.JsonInclude;
-import in.lms.sinchan.model.BIRD;
+import in.lms.sinchan.entity.BIRD;
 
 @Component
 @lombok.Data

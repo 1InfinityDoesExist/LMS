@@ -15,6 +15,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import in.lms.sinchan.entity.Book;
 import in.lms.sinchan.exception.BookDoesNotExistException;
+import in.lms.sinchan.exception.BookNotPersistedInDB;
+import in.lms.sinchan.model.request.BIRDRequest;
 import in.lms.sinchan.model.request.BookCreateRequest;
 import in.lms.sinchan.model.request.BookUpdateRequest;
 import in.lms.sinchan.model.response.BookCreateResponse;
@@ -29,10 +31,15 @@ public class BookController {
 
     @PostMapping(value = "/create")
     public ResponseEntity<?> persistBookDetailsInDB(
-                    @RequestBody BookCreateRequest bookCreateRequest) {
-        BookCreateResponse response = bookService.persistBookInDB(bookCreateRequest);
-        return ResponseEntity.status(HttpStatus.CREATED)
-                        .body(new ModelMap().addAttribute("response", response));
+                    @RequestBody BookCreateRequest bookCreateRequest) throws Exception {
+        try {
+            BookCreateResponse response = bookService.persistBookInDB(bookCreateRequest);
+            return ResponseEntity.status(HttpStatus.CREATED)
+                            .body(new ModelMap().addAttribute("response", response));
+        } catch (final BookNotPersistedInDB ex) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                            .body(new ModelMap().addAttribute("msg", ex.getMessage()));
+        }
     }
 
     @GetMapping(value = "/get/{id}")
@@ -86,5 +93,18 @@ public class BookController {
         bookService.clearCache();
         return ResponseEntity.status(HttpStatus.OK).body(
                         new ModelMap().addAttribute("msg", "Successfully cleard all the cache"));
+    }
+
+    @PostMapping(value = "/issueBook")
+    public ResponseEntity<?> issueBook(@RequestBody BIRDRequest birdRequest) throws Exception {
+        bookService.issueBookToStudent(birdRequest);
+        return ResponseEntity.status(HttpStatus.OK).body(new ModelMap().addAttribute("msg", ""));
+    }
+
+    @PostMapping(value = "/returnBook")
+    public ResponseEntity<?> returnBook(@RequestBody BIRDRequest birdRequest) {
+        bookService.returnBookToLMS(birdRequest);
+        return ResponseEntity.status(HttpStatus.OK)
+                        .body(new ModelMap().addAttribute("msg", "Successfully  return the book."));
     }
 }

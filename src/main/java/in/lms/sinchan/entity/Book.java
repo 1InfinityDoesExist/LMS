@@ -9,7 +9,6 @@ import org.springframework.data.mongodb.core.mapping.Document;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import in.lms.sinchan.model.BIRD;
 import in.lms.sinchan.util.CustomDateAndTimeDeserialize;
 import in.lms.sinchan.util.CustomDateAndTimeSerialize;
 
@@ -20,7 +19,6 @@ import in.lms.sinchan.util.CustomDateAndTimeSerialize;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 // JdkSerializationRedisSerializer
 public class Book implements Serializable {
-
 
     @Id
     private String id;
@@ -35,6 +33,4 @@ public class Book implements Serializable {
     private String author;
     private String Section;
     private List<String> gener;
-    private List<BIRD> bid = new ArrayList<>();
-
 }
