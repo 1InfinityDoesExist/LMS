@@ -16,4 +16,7 @@ public interface BIRDRepository extends MongoRepository<BIRD, String> {
     @Query(value = "{'isActive':true}")
     public List<BIRD> findAllBIRD();
 
+    @Query(value = "{'isActive':true}")
+    public BIRD findBIRDByBookId(String id);
+
 }

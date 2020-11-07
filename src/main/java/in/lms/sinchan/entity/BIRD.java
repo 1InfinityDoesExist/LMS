@@ -19,7 +19,7 @@ public class BIRD {
     private Date issuedDate;
     private Date returnedOn;
     private Double fineAmount;
-    private Integer lateReturnDays;
+    private long lateReturnDays;
     private String issuerId;
     private boolean isActive;
 
