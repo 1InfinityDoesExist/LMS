@@ -76,6 +76,9 @@ public class StudentController {
                         .body(new ModelMap().addAttribute("response", listOfStudents));
     }
 
+    /*
+     * Check for Book Return and dues
+     */
     @GetMapping(value = "/delete/{id}")
     public ResponseEntity<?> deleteStudentRecords(
                     @PathVariable(value = "id", required = true) String id) throws Exception {
@@ -109,7 +112,7 @@ public class StudentController {
         try {
             List<String> response = studentService.verifyStudentEmailAndMobile(otpVerifyDetails);
             return ResponseEntity.status(HttpStatus.OK)
-                            .body(new ModelMap().addAttribute("msg", "KYC verification success."));
+                            .body(new ModelMap().addAttribute("msg", response));
         } catch (final StudentNotFoundException ex) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND)
                             .body(new ModelMap().addAttribute("msg", ex.getMessage()));

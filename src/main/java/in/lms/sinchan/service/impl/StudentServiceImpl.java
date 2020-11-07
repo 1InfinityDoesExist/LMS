@@ -103,9 +103,9 @@ public class StudentServiceImpl implements StudentService {
             new RoleNotFoundException("Role not found. Please create a role first.");
         }
         studentRepository.save(student);
-        log.info("::::::student Id {}", student.getStudentId());
+        log.info("::::::student Id {}", student.getId());
         OtpDetails otpDetails = new OtpDetails();
-        otpDetails.setId(student.getStudentId());
+        otpDetails.setId(student.getId());
         otpDetails.setEmailOtp(emailOtp);
         otpDetails.setMobileOtp(mobileOtp);
         otpDetails.setEmailOtpExpiryDate(10);
@@ -113,7 +113,7 @@ public class StudentServiceImpl implements StudentService {
         otpDetailsRepository.save(otpDetails);
         log.info(":::::otpDetails Id {}", otpDetails.getId());
         StudentResponse studentResponse = new StudentResponse();
-        studentResponse.setStudentId(student.getStudentId());
+        studentResponse.setStudentId(student.getId());
         studentResponse.setMsg(msg);
         return studentResponse;
     }
@@ -122,7 +122,7 @@ public class StudentServiceImpl implements StudentService {
     public Student getStudentDetails(String id) throws Exception {
         Student student = null;
         if (!StringUtils.isNullOrEmpty(id)) {
-            student = studentRepository.findStudentByStudentId(id);
+            student = studentRepository.findStudentById(id);
             if (!ObjectUtils.isEmpty(student)) {
                 return student;
             } else {
@@ -199,7 +199,7 @@ public class StudentServiceImpl implements StudentService {
                                     otpVerifyDetails.getEmail(), otpVerifyDetails.getMobile()));
                 } else {
                     OtpDetails otpDetails =
-                                    otpDetailsRepository.findOtpDetailsById(student.getStudentId());
+                                    otpDetailsRepository.findOtpDetailsById(student.getId());
                     if (student.isEmailVerified()) {
                         response.add("EmailId already verified");
                     } else {
@@ -208,6 +208,7 @@ public class StudentServiceImpl implements StudentService {
                         } else {
                             if (otpDetails.getEmailOtp().equals(otpVerifyDetails.getEmailOtp())) {
                                 student.setEmailVerified(true);
+                                studentRepository.save(student);
                                 response.add("Email successfully verified.");
                             } else {
                                 response.add("Otp is incorrect, Please insert the correct otp sent to u via email.");
@@ -222,11 +223,14 @@ public class StudentServiceImpl implements StudentService {
                         } else {
                             if (otpDetails.getMobileOtp().equals(otpVerifyDetails.getMobileOtp())) {
                                 student.setMobileVerified(true);
+                                studentRepository.save(student);
+                                response.add("Phone number successfully verified.");
                             } else {
                                 response.add("Otp is incorrect. Please insert correct  mobile otp send to u via sms.");
                             }
                         }
                     }
+
                 }
             }
         } else {
