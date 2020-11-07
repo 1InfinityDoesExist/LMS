@@ -24,8 +24,10 @@ public interface BookService {
 
     public void clearCache();
 
-    public void issueBookToStudent(BIRDRequest birdRequest) throws Exception;
+    public String issueBookToStudent(BIRDRequest birdRequest) throws Exception;
 
     public void returnBookToLMS(BIRDRequest birdRequest) throws Exception;
+
+    public List<Book> getAvailableBooks();
 
 }
