@@ -8,9 +8,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.Cache;
-import org.springframework.cache.annotation.CacheEvict;
-import org.springframework.cache.annotation.CachePut;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.ui.ModelMap;
@@ -20,9 +17,12 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import in.lms.sinchan.email.EmailService;
 import in.lms.sinchan.entity.BIRD;
 import in.lms.sinchan.entity.Book;
+import in.lms.sinchan.entity.Librarian;
 import in.lms.sinchan.entity.Student;
 import in.lms.sinchan.exception.BookDoesNotExistException;
 import in.lms.sinchan.exception.BookNotPersistedInDB;
+import in.lms.sinchan.exception.InvalidInput;
+import in.lms.sinchan.exception.LibrarianNotFound;
 import in.lms.sinchan.exception.NotEligible;
 import in.lms.sinchan.exception.StudentNotFoundException;
 import in.lms.sinchan.lmsProducer.LmsProducer;
@@ -32,6 +32,7 @@ import in.lms.sinchan.model.request.BookUpdateRequest;
 import in.lms.sinchan.model.response.BookCreateResponse;
 import in.lms.sinchan.repository.BIRDRepository;
 import in.lms.sinchan.repository.BookRepository;
+import in.lms.sinchan.repository.LibrarianRepository;
 import in.lms.sinchan.repository.StudentRepository;
 import in.lms.sinchan.service.BookService;
 import in.lms.sinchan.util.Constants;
@@ -69,6 +70,10 @@ public class BookServiceImpl implements BookService {
     @Value("${reminderto.return.book}")
     private String reminder;
 
+
+    @Autowired
+    private LibrarianRepository librarianRepository;
+
     @Override
     public BookCreateResponse persistBookInDB(BookCreateRequest bookCreateRequest)
                     throws Exception {
@@ -84,14 +89,7 @@ public class BookServiceImpl implements BookService {
         book.setVersion(bookCreateRequest.getVersion());
         book.setGener(bookCreateRequest.getGener());
         bookRepository.save(book);
-        /*
-         * Calling Kafka producer for notification
-         */
-        if (!StringUtils.isNullOrEmpty(book.getId())) {
-            lmsProducer.produce(topic, book);
-        } else {
-            throw new BookNotPersistedInDB("Could not persist book details in db.");
-        }
+
         BookCreateResponse bookCreateResponse = new BookCreateResponse();
         bookCreateResponse.setBookId(book.getId());
         bookCreateResponse.setMsg("Successfully created");
@@ -176,8 +174,15 @@ public class BookServiceImpl implements BookService {
                                 .filter(p -> p.isActive() == true ? true : false).count();
                 student.setEligibleToIssueBook(numberOfBooksIssued <= 3 ? true : false);
                 student.getLibraryDetails().add(bird);
+                /*
+                 * X got the book he/she as looking for now he must not get the availability
+                 * recommendation of that book.
+                 */
+                student.getMostAwatedBooks().removeIf(b -> b.equals(bird.getBookId()));
                 studentRepository.save(student);
                 log.info(":::::student libraryDetails {}", student.getLibraryDetails());
+
+
             } else {
                 throw new NotEligible("Sutdent with id: " + student.getId()
                                 + " not eligible to issue any sort of book from LMS");
@@ -234,10 +239,74 @@ public class BookServiceImpl implements BookService {
     }
 
     @Override
-    public void returnBookToLMS(BIRDRequest birdRequest) {
-        // TODO Auto-generated method stub
+    public void returnBookToLMS(BIRDRequest birdRequest) throws Exception {
 
+        if (!ObjectUtils.isEmpty(birdRequest)) {
+            validateBirdRequestDetails(birdRequest);
+            /*
+             * Update Book details
+             */
+            Book book = bookRepository.findBookById(birdRequest.getBookId());
+            book.setIssued(false);
+            book.setAvailable(true);
+            book.setAvailableOn(new Date());
+            bookRepository.save(book);
+            log.info(":::::book {}", book);
+            /*
+             * Update bird details
+             */
+            BIRD bird = birdRepository.findBIRDByBookId(book.getId());
+            bird.setActive(false);
+            bird.setReturnedOn(new Date());
+            long lateDays = new Date().getTime()
+                            - bird.getIssuedExpiryDate().getTime();
+            bird.setLateReturnDays(lateDays);
+            bird.setFineAmount(lateDays * bird.getFineAmount());
+            birdRepository.save(bird);
+            log.info(":::::bird {}", bird);
+            Student student = studentRepository.findStudentById(bird.getIssuedBy());
+            List<BIRD> listOfBird = student.getLibraryDetails();
+            listOfBird.removeIf(b -> b.getId().equals(bird.getId()));
+            listOfBird.add(bird);
+            studentRepository.save(student);
+            log.info("::::::student {}", student);
+
+            /*
+             * Sending notification to all students who looking the particular book
+             */
+            lmsProducer.produce(topic, book);
+        } else {
+            throw new InvalidInput("Invalid input.");
+        }
     }
 
-
+    private boolean validateBirdRequestDetails(BIRDRequest birdRequest) throws Exception {
+        if (!StringUtils.isNullOrEmpty(birdRequest.getBookId())) {
+            Book book = bookRepository.findBookById(birdRequest.getBookId());
+            if (ObjectUtils.isEmpty(book)) {
+                throw new BookDoesNotExistException(
+                                "Book does not exist. Please insert book detatils first.");
+            }
+        } else {
+            throw new InvalidInput("Book id must not be null or empty");
+        }
+        if (!StringUtils.isNullOrEmpty(birdRequest.getIssuedBy())) {
+            Student student = studentRepository.findStudentById(birdRequest.getIssuedBy());
+            if (ObjectUtils.isEmpty(student)) {
+                throw new StudentNotFoundException(
+                                "Student does not exist. Please store student details first.");
+            }
+        } else {
+            throw new InvalidInput("Student id must not be null or empty");
+        }
+        if (!StringUtils.isNullOrEmpty(birdRequest.getIssuerId())) {
+            Librarian librarian = librarianRepository.findLibrarianById(birdRequest.getIssuerId());
+            if (ObjectUtils.isEmpty(librarian)) {
+                throw new LibrarianNotFound("Librarian does not exist.");
+            }
+        } else {
+            throw new InvalidInput("Issuer id must not be null or empty");
+        }
+        return true;
+    }
 }

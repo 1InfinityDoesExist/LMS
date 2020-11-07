@@ -26,6 +26,6 @@ public interface BookService {
 
     public void issueBookToStudent(BIRDRequest birdRequest) throws Exception;
 
-    public void returnBookToLMS(BIRDRequest birdRequest);
+    public void returnBookToLMS(BIRDRequest birdRequest) throws Exception;
 
 }
