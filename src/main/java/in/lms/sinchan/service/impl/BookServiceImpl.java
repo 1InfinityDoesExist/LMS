@@ -1,5 +1,6 @@
 package in.lms.sinchan.service.impl;
 
+import java.time.Duration;
 import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -267,8 +268,9 @@ public class BookServiceImpl implements BookService {
             BIRD bird = birdRepository.findBIRDByBookId(book.getId());
             bird.setActive(false);
             bird.setReturnedOn(new Date());
-            long lateDays = new Date().getTime()
-                            - bird.getIssuedExpiryDate().getTime();
+            long lateDays = (new Date().getTime()
+                            - bird.getIssuedExpiryDate().getTime()) / ((1000 * 60 * 60 * 24));
+
             bird.setLateReturnDays(lateDays);
             bird.setFineAmount(lateDays * book.getFinePerDay());
             birdRepository.save(bird);
