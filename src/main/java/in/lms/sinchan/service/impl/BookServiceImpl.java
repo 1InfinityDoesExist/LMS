@@ -170,6 +170,7 @@ public class BookServiceImpl implements BookService {
                 bird.setIssuedDate(new Date());
                 bird.setIssuedExpiryDate(10);
                 bird.setIssuerId(birdRequest.getIssuerId());
+                bird.setActive(true);
                 birdRepository.save(bird);
                 long numberOfBooksIssued = student.getLibraryDetails().stream()
                                 .filter(p -> p.isActive() == true ? true : false).count();
@@ -181,6 +182,12 @@ public class BookServiceImpl implements BookService {
                  */
                 student.getMostAwatedBooks().removeIf(b -> b.equals(bird.getBookId()));
                 studentRepository.save(student);
+
+                Book book = bookRepository.findBookById(birdRequest.getBookId());
+                book.setIssued(true);
+                book.setAvailable(false);
+                book.setAvailableOn(bird.getIssuedExpiryDate());
+                bookRepository.save(book);
                 log.info(":::::student libraryDetails {}", student.getLibraryDetails());
 
                 return bird.getId();
@@ -198,7 +205,8 @@ public class BookServiceImpl implements BookService {
     /*
      * Cron job to remind the last date to return the books
      */
-    @Scheduled(cron = "${reminderto.return.book}")
+    // @Scheduled(cron = "${reminderto.return.book}")
+    @Scheduled(fixedDelayString = "${reminder.time:300000}")
     public void reminderToReturnBook() {
         log.info(":::::Cron job to remind issue date going to be expired today");
         List<BIRD> listOfBird = birdRepository.findBooksByIssuedExpiryDate(new Date());
@@ -223,7 +231,7 @@ public class BookServiceImpl implements BookService {
         List<BIRD> listOfBird = birdRepository.findAllBIRD();
         listOfBird.stream().filter(bird -> {
             log.info(":::::bird {}", bird);
-            return bird.isIssuedDateExpired();
+            return bird.isIssuedDateExpired() == true ? true : false;
         }).forEach(b -> {
             Student student = studentRepository.findStudentById(b.getIssuedBy());
             log.info(":::::student {}", student);
@@ -243,7 +251,7 @@ public class BookServiceImpl implements BookService {
     public void returnBookToLMS(BIRDRequest birdRequest) throws Exception {
 
         if (!ObjectUtils.isEmpty(birdRequest)) {
-            validateBirdRequestDetails(birdRequest);
+            // validateBirdRequestDetails(birdRequest);
             /*
              * Update Book details
              */
@@ -262,7 +270,7 @@ public class BookServiceImpl implements BookService {
             long lateDays = new Date().getTime()
                             - bird.getIssuedExpiryDate().getTime();
             bird.setLateReturnDays(lateDays);
-            bird.setFineAmount(lateDays * bird.getFineAmount());
+            bird.setFineAmount(lateDays * book.getFinePerDay());
             birdRepository.save(bird);
             log.info(":::::bird {}", bird);
             Student student = studentRepository.findStudentById(bird.getIssuedBy());
@@ -275,7 +283,12 @@ public class BookServiceImpl implements BookService {
             /*
              * Sending notification to all students who looking the particular book
              */
-            lmsProducer.produce(topic, book);
+
+            JSONObject jsonObject = new JSONObject();
+            jsonObject.put("id", book.getId());
+            jsonObject.put("bookName", book.getBookName());
+            jsonObject.put("version", book.getVersion());
+            lmsProducer.produce(topic, jsonObject.toJSONString());
         } else {
             throw new InvalidInput("Invalid input.");
         }
