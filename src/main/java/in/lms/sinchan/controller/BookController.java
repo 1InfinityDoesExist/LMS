@@ -136,4 +136,12 @@ public class BookController {
         return ResponseEntity.status(HttpStatus.OK)
                         .body(new ModelMap().addAttribute("msg", listOfBooks));
     }
+
+    // Cache to be added
+    @GetMapping(value = "/get/all/listOfIssuedBooks")
+    public ResponseEntity<?> getListOfIssuedBooks() {
+        List<String> books = bookService.getListOfIssuedBooks();
+        return ResponseEntity.status(HttpStatus.OK)
+                        .body(new ModelMap().addAttribute("response", books));
+    }
 }

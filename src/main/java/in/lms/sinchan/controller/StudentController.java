@@ -22,14 +22,17 @@ import in.lms.sinchan.exception.InvalidInput;
 import in.lms.sinchan.exception.RoleNotFoundException;
 import in.lms.sinchan.exception.StudentNotFoundException;
 import in.lms.sinchan.exception.TenantNotFoundException;
+import in.lms.sinchan.model.AwaitedBooks;
 import in.lms.sinchan.model.OtpVerificationDetails;
 import in.lms.sinchan.model.request.StudentRequest;
 import in.lms.sinchan.model.request.StudentUpdateRequest;
 import in.lms.sinchan.model.response.StudentResponse;
 import in.lms.sinchan.service.StudentService;
+import lombok.extern.slf4j.Slf4j;
 
 @RestController("studentController")
 @RequestMapping(value = "/student")
+@Slf4j
 public class StudentController {
 
     @Autowired
@@ -156,9 +159,10 @@ public class StudentController {
         }
     }
 
-    @GetMapping(value = "/get/currentBooks/{id}")
+    @GetMapping(value = "/get/currentIssuedBooks/{id}")
     public ResponseEntity<?> getCurrentIssuedBooks(
                     @PathVariable(value = "id", required = true) String id) throws Exception {
+        log.info(":::::StudentController Class, getCurrentIssuedBooks method:::::");
         try {
             List<String> listOfBooks = studentService.getStudentCurrentIssuedBooksList(id);
             return ResponseEntity.status(HttpStatus.OK)
@@ -181,5 +185,16 @@ public class StudentController {
             return ResponseEntity.status(HttpStatus.OK)
                             .body(new ModelMap().addAttribute("msg", ex.getMessage()));
         }
+    }
+
+    @PostMapping(value = "/addawaitedBook/{id}")
+    public ResponseEntity<?> addMostAwaitedBooks(
+                    @RequestBody AwaitedBooks awaitedBooks,
+                    @PathVariable(value = "id", required = true) String id) throws Exception {
+        Student student = studentService.addAwaitedBooks(awaitedBooks, id);
+        return ResponseEntity.status(HttpStatus.OK)
+                        .body(new ModelMap().addAttribute("id", student.getId()).addAttribute(
+                                        "awaitedBooks", student.getMostAwatedBooks()));
+
     }
 }

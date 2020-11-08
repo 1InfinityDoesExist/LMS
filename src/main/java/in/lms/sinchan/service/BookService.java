@@ -30,4 +30,6 @@ public interface BookService {
 
     public List<Book> getAvailableBooks();
 
+    public List<String> getListOfIssuedBooks();
+
 }
