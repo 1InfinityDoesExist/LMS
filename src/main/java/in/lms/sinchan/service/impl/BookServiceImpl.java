@@ -2,6 +2,7 @@ package in.lms.sinchan.service.impl;
 
 import java.util.Date;
 import java.util.List;
+import java.util.stream.Collectors;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -87,6 +88,7 @@ public class BookServiceImpl implements BookService {
         book.setSection(bookCreateRequest.getSection());
         book.setVersion(bookCreateRequest.getVersion());
         book.setGener(bookCreateRequest.getGener());
+        book.setActive(true);
         bookRepository.save(book);
 
         BookCreateResponse bookCreateResponse = new BookCreateResponse();
@@ -215,7 +217,7 @@ public class BookServiceImpl implements BookService {
     /*
      * Cron to remind that the issue date has been expired and fine has been added.
      */
-    @Scheduled(fixedDelayString = "${reminder.time:900000}")
+    @Scheduled(fixedDelayString = "${reminder.time:300000}")
     public void reminderToReturnBookAfterExpireyDate() {
         log.info(":::::Cron job to remind issue date has been expired and fine has been added");
         List<BIRD> listOfBird = birdRepository.findAllBIRD();
@@ -313,5 +315,11 @@ public class BookServiceImpl implements BookService {
     public List<Book> getAvailableBooks() {
         List<Book> listOfBooks = bookRepository.findBookByIsActiveAndIsAvailable(true, true);
         return listOfBooks;
+    }
+
+    @Override
+    public List<String> getListOfIssuedBooks() {
+        List<Book> books = bookRepository.findBookByIsIssued(true);
+        return books.stream().map(Book::getId).collect(Collectors.toList());
     }
 }

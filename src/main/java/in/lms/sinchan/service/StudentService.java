@@ -7,6 +7,7 @@ import in.lms.sinchan.entity.BIRD;
 import in.lms.sinchan.entity.Book;
 import in.lms.sinchan.entity.Student;
 import in.lms.sinchan.exception.StudentNotFoundException;
+import in.lms.sinchan.model.AwaitedBooks;
 import in.lms.sinchan.model.OtpVerificationDetails;
 import in.lms.sinchan.model.request.StudentRequest;
 import in.lms.sinchan.model.request.StudentUpdateRequest;
@@ -38,5 +39,7 @@ public interface StudentService {
     public List<String> getAllProfileImages(String email) throws Exception;
 
     public void deleteProfileImage(String email, String image);
+
+    public Student addAwaitedBooks(AwaitedBooks awaitedBooks, String id) throws Exception;
 
 }

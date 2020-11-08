@@ -9,10 +9,13 @@ import in.lms.sinchan.entity.Book;
 @Repository
 public interface BookRepository extends MongoRepository<Book, String> {
 
-    @Query(value = "{'isActive:true}")
+    @Query(value = "{'isActive':true, 'id':?0}")
     public Book findBookById(String id);
 
-    @Query(value = "{'isActive:true, 'isAvailable'=true}")
+    @Query(value = "{'isActive':?0, 'isAvailable':?1}")
     public List<Book> findBookByIsActiveAndIsAvailable(boolean b, boolean c);
+
+    @Query(value = "{'isIssued':true, 'isActive':true}")
+    public List<Book> findBookByIsIssued(boolean b);
 
 }

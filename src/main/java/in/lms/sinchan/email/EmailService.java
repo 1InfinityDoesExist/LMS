@@ -9,8 +9,10 @@ import org.springframework.mail.javamail.JavaMailSenderImpl;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Component;
 import org.springframework.ui.ModelMap;
+import lombok.extern.slf4j.Slf4j;
 
 @Component
+@Slf4j
 public class EmailService {
 
     @Autowired
@@ -28,7 +30,10 @@ public class EmailService {
     private String provider;
 
     public String sendMail(ModelMap modelMap) {
+        log.info(":::::Inside EmailService Class, sendEmail method:::::");
         JavaMailSenderImpl javaMailSenderImpl = new JavaMailSenderImpl();
+        log.info(":::::host {}, port {}, emailID {}, password {}, provider {}", host, port, emailId,
+                        password, provider);
         javaMailSenderImpl.setHost(host);
         javaMailSenderImpl.setPort(port);
         javaMailSenderImpl.setUsername(emailId);
@@ -48,14 +53,17 @@ public class EmailService {
     }
 
     private Properties getJavaMailProperties(String provider) {
+        log.info(":::::Setting javaMailProperties :::::");
         Properties properties = new Properties();
         if (provider.equalsIgnoreCase("GMAIL")) {
             getJavaGmailProperties(properties);
         }
+        log.info("::::properties {}", properties);
         return properties;
     }
 
     private void getJavaGmailProperties(Properties properties) {
+        log.info(":::::Filling the properties::::");
         gmailProvider.getGmailProperties().entrySet().stream()
                         .forEach(m -> properties.put(m.getKey(), m.getValue()));
     }

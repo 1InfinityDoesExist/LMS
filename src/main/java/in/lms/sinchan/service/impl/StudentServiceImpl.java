@@ -24,6 +24,7 @@ import in.lms.sinchan.exception.InvalidInput;
 import in.lms.sinchan.exception.RoleNotFoundException;
 import in.lms.sinchan.exception.StudentNotFoundException;
 import in.lms.sinchan.exception.TenantNotFoundException;
+import in.lms.sinchan.model.AwaitedBooks;
 import in.lms.sinchan.model.OtpVerificationDetails;
 import in.lms.sinchan.model.request.StudentRequest;
 import in.lms.sinchan.model.request.StudentUpdateRequest;
@@ -63,6 +64,7 @@ public class StudentServiceImpl implements StudentService {
 
     @Override
     public StudentResponse persist(StudentRequest studentRequest) throws Exception {
+        log.info("-----StudentServiceImpl Class, persist method----");
         List<String> msg = new ArrayList<String>();
         if (!StringUtils.isNullOrEmpty(studentRequest.getParentTenant())) {
             Optional<Tenant> tenant = tenantRepository.findById(studentRequest.getParentTenant());
@@ -187,7 +189,9 @@ public class StudentServiceImpl implements StudentService {
     @Override
     public List<String> verifyStudentEmailAndMobile(OtpVerificationDetails otpVerifyDetails)
                     throws Exception {
+        log.info("::::::StudentServiceImpl Class, verifyStudentEmailAndMobile method:::::");
         List<String> response = new ArrayList<>();
+        OtpDetails otpDetails = null;
         if (!ObjectUtils.isEmpty(otpVerifyDetails)) {
             if (ObjectUtils.isEmpty(otpVerifyDetails.getEmail())
                             && ObjectUtils.isEmpty(otpVerifyDetails.getMobile())) {
@@ -195,13 +199,13 @@ public class StudentServiceImpl implements StudentService {
             } else {
                 Student student = studentRepository.findStudentByEmailAndPhone(
                                 otpVerifyDetails.getEmail(), otpVerifyDetails.getMobile());
+                log.info(":::::student {}", student);
                 if (ObjectUtils.isEmpty(student)) {
                     throw new StudentNotFoundException(String.format(
                                     "Student not found with email %s and phone %s",
                                     otpVerifyDetails.getEmail(), otpVerifyDetails.getMobile()));
                 } else {
-                    OtpDetails otpDetails =
-                                    otpDetailsRepository.findOtpDetailsById(student.getId());
+                    otpDetails = otpDetailsRepository.findOtpDetailsById(student.getId());
                     if (student.isEmailVerified()) {
                         response.add("EmailId already verified");
                     } else {
@@ -234,6 +238,15 @@ public class StudentServiceImpl implements StudentService {
                     }
 
                 }
+                log.info(":::::student Email {} and Mobile {}", student.isEmailVerified(),
+                                student.isMobileVerified());
+                if (student.isEmailVerified() == true && student.isMobileVerified() == true) {
+                    student.setActive(true);
+                    student.setEligibleToIssueBook(true);
+                    studentRepository.save(student);
+                    otpDetailsRepository.delete(otpDetails);
+                    response.add("Please do upload profile image.");
+                }
             }
         } else {
             throw new InvalidInput("Invalid input.");
@@ -247,7 +260,15 @@ public class StudentServiceImpl implements StudentService {
      */
     @Override
     public String uploadImageUrl(MultipartFile image, String email) throws Exception {
-        return awsOperations.uploadProfilePic(image, "imageProfile", email);
+        Student student = studentRepository.findStudentByEmail(email);
+        if (!ObjectUtils.isEmpty(student)) {
+            String profileImage = awsOperations.uploadProfilePic(image, "imageProfile", email);
+            student.setProfileImageUrl(profileImage);
+            studentRepository.save(student);
+            return profileImage;
+        } else {
+            throw new StudentNotFoundException("No student found with email : " + email);
+        }
     }
 
 
@@ -283,5 +304,21 @@ public class StudentServiceImpl implements StudentService {
     public void deleteProfileImage(String email, String image) {
         awsOperations.deleteProfileImage(email, image, "imageProfile");
 
+    }
+
+
+    /*
+     * awaitedBooks list you will get from getListOfIssuedBooks
+     */
+    @Override
+    public Student addAwaitedBooks(AwaitedBooks awaitedBooks, String id) throws Exception {
+        Student student = studentRepository.findStudentById(id);
+        if (!ObjectUtils.isEmpty(student)) {
+            student.setMostAwatedBooks(awaitedBooks.getAwaitedBooks());
+            studentRepository.save(student);
+            return student;
+        } else {
+            throw new StudentNotFoundException("No student exist with id : " + id);
+        }
     }
 }
