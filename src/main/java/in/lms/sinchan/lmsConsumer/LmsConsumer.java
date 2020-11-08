@@ -30,7 +30,7 @@ public class LmsConsumer {
 
     @KafkaListener(topics = "bookTopic",
                     containerFactory = "concurrentKafkaListenerContainerFactory")
-    public void consumes(ConsumerRecord<String, Object> consumerRecord) throws ParseException {
+    public void consumes(ConsumerRecord<String, String> consumerRecord) throws ParseException {
         log.info("-----Inside LmsConsumer Class, consume method----");
         JSONObject jsonObject =
                         (JSONObject) new JSONParser().parse(consumerRecord.value().toString());

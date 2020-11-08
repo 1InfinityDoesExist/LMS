@@ -11,11 +11,13 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import in.lms.sinchan.util.CustomDateAndTimeDeserialize;
 import in.lms.sinchan.util.CustomDateAndTimeSerialize;
+import lombok.ToString;
 
 
 @SuppressWarnings("serial")
 @Document(collection = "book")
 @lombok.Data
+@ToString
 @JsonInclude(JsonInclude.Include.NON_NULL)
 // JdkSerializationRedisSerializer
 public class Book implements Serializable {
