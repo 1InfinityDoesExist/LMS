@@ -20,8 +20,10 @@ import in.lms.sinchan.model.response.RoleCreateResponse;
 import in.lms.sinchan.repository.RoleRepository;
 import in.lms.sinchan.repository.TenantRepository;
 import in.lms.sinchan.service.RoleService;
+import lombok.extern.slf4j.Slf4j;
 
 @Component
+@Slf4j
 public class RoleServiceImpl implements RoleService {
 
     @Autowired
@@ -45,6 +47,7 @@ public class RoleServiceImpl implements RoleService {
         role.setDescription(roleCreateRequest.getDescription());
         role.setName(roleCreateRequest.getName());
         role.setParentTenant(roleCreateRequest.getParentTenant());
+        role.setActive(true);
         roleRepository.save(role);
         RoleCreateResponse response = new RoleCreateResponse();
         response.setId(role.getId());
@@ -68,27 +71,52 @@ public class RoleServiceImpl implements RoleService {
 
     @Override
     public List<Role> getAllRoles() throws Exception {
-        List<Role> listOfRole = roleRepository.findAll();
+        List<Role> listOfRole = roleRepository.findRoleByIsActive(true);
         return listOfRole;
     }
 
     @Override
     public void deleteRole(String id) throws Exception {
-        Role role = roleRepository.findRoleById(id);
-        roleRepository.delete(role);
+        if (!ObjectUtils.isEmpty(id)) {
+            Role role = roleRepository.findRoleById(id);
+            if (!ObjectUtils.isEmpty(role)) {
+                role.setActive(false);
+                roleRepository.save(role);
+            } else {
+                throw new RoleNotFoundException("Role does not exist. Please crete a role first");
+            }
+        } else {
+            throw new InvalidInput("Id must not be null or empty");
+        }
+
     }
 
     @SuppressWarnings("unchecked")
     @Override
     public void updateRole(RoleUpdateRequest roleUpdateRequest, String id) throws Exception {
         Role role = roleRepository.findRoleById(id);
+        if (ObjectUtils.isEmpty(role)) {
+            throw new RoleNotFoundException(
+                            "Role with id :" + id + " does not exist. Please create a role first.");
+        }
         JSONObject roleFromDB = (JSONObject) new JSONParser()
                         .parse(new ObjectMapper().writeValueAsString(role));
         JSONObject roleFromPayload = (JSONObject) new JSONParser()
                         .parse(new ObjectMapper().writeValueAsString(roleUpdateRequest));
         for (Object obj : roleFromPayload.keySet()) {
             String param = (String) obj;
-            roleFromDB.put(param, roleFromPayload.get(param));
+            if (param.equalsIgnoreCase("parentTenant")) {
+                Tenant tenantFromDB = tenantRepository
+                                .findTenantById((String) roleFromPayload.get(param));
+                if (ObjectUtils.isEmpty(tenantFromDB)) {
+                    throw new TenantNotFoundException(
+                                    "Tenant does not exist. Please create tenant first.");
+                } else {
+                    roleFromDB.put(param, roleFromPayload.get(param));
+                }
+            } else {
+                roleFromDB.put(param, roleFromPayload.get(param));
+            }
         }
         Role updatedRole = new ObjectMapper().readValue(roleFromDB.toJSONString(), Role.class);
         roleRepository.save(updatedRole);

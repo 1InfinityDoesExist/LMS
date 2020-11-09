@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -63,24 +64,49 @@ public class TenantController {
 
     @GetMapping(value = "/get")
     public ResponseEntity<?> getAllTenants() throws Exception {
-        List<Tenant> listOfTenant = tenantService.getAllTenants();
-        return ResponseEntity.status(HttpStatus.OK)
-                        .body(new ModelMap().addAttribute("response", listOfTenant));
+        try {
+            List<Tenant> listOfTenant = tenantService.getAllTenants();
+            return ResponseEntity.status(HttpStatus.OK)
+                            .body(new ModelMap().addAttribute("response", listOfTenant));
+        } catch (final TenantNotFoundException ex) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                            .body(new ModelMap().addAttribute("msg", ex.getMessage()));
+        } catch (final InvalidInput ex) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                            .body(new ModelMap().addAttribute("msg", ex.getMessage()));
+        }
     }
 
     @DeleteMapping(value = "/delete/{id}")
     public ResponseEntity<?> deleteTenant(
                     @PathVariable(value = "id", required = true) String id) throws Exception {
-        tenantService.deleteTenant(id);
-        return ResponseEntity.status(HttpStatus.OK)
-                        .body(new ModelMap().addAttribute("msg", "Successfully delete"));
+        try {
+            tenantService.deleteTenant(id);
+            return ResponseEntity.status(HttpStatus.OK)
+                            .body(new ModelMap().addAttribute("msg", "Successfully delete"));
+        } catch (final TenantNotFoundException ex) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                            .body(new ModelMap().addAttribute("msg", ex.getMessage()));
+        } catch (final InvalidInput ex) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                            .body(new ModelMap().addAttribute("msg", ex.getMessage()));
+        }
     }
 
+    @PutMapping(value = "/update/{id}")
     public ResponseEntity<?> updateTenant(@RequestBody TenantUpdateRequest tenantUpdateRequest,
-                    String id) throws Exception {
-        tenantService.updateTenant(tenantUpdateRequest, id);
-        return ResponseEntity.status(HttpStatus.OK)
-                        .body(new ModelMap().addAttribute("msg", "Successfully updated."));
+                    @PathVariable(value = "id", required = true) String id) throws Exception {
+        try {
+            tenantService.updateTenant(tenantUpdateRequest, id);
+            return ResponseEntity.status(HttpStatus.OK)
+                            .body(new ModelMap().addAttribute("msg", "Successfully updated."));
+        } catch (final TenantNotFoundException ex) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                            .body(new ModelMap().addAttribute("msg", ex.getMessage()));
+        } catch (final InvalidInput ex) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                            .body(new ModelMap().addAttribute("msg", ex.getMessage()));
+        }
     }
 
 }

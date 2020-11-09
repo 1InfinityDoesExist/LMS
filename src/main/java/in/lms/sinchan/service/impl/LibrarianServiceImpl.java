@@ -52,9 +52,14 @@ public class LibrarianServiceImpl implements LibrarianService {
         Librarian librarian = new Librarian();
         if (!ObjectUtils.isEmpty(librarianCreateReqest.getRole())) {
             Role role = roleRepository.findRoleByName(librarianCreateReqest.getRole());
-            librarian.setRole(role.getId());
+            if (!ObjectUtils.isEmpty(role)) {
+                librarian.setRole(role.getId());
+            } else {
+                throw new RoleNotFoundException("Role does not exist with name : "
+                                + librarianCreateReqest.getRole() + ". Please create a role first");
+            }
         } else {
-            throw new RoleNotFoundException("Role does not exit, please create a role first");
+            throw new InvalidInput("Role field must not be null or empty");
         }
         librarian.setDateOfJoining(new Date());
         if (!ObjectUtils.isEmpty(librarianCreateReqest.getEmail())) {

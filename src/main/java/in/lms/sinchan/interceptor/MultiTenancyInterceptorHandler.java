@@ -31,6 +31,8 @@ public class MultiTenancyInterceptorHandler extends HandlerInterceptorAdapter {
         log.info("::::Address ::::" + request.getLocalAddr() + " " + request.getRemoteAddr());
 
 
+        log.info(":::::Session {}", request.getSession());
+        
         // Remove Bearer
         log.info(":::::authDetails before split : {}", authDetails);
         authDetails = authDetails.split(" ")[1];
