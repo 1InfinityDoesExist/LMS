@@ -70,17 +70,33 @@ public class RoleController {
     @DeleteMapping(value = "/delete/{id}")
     public ResponseEntity<?> deleteRole(@PathVariable(value = "id", required = true) String id)
                     throws Exception {
-        roleService.deleteRole(id);
-        return ResponseEntity.status(HttpStatus.OK).body(
-                        new ModelMap().addAttribute("msg",
-                                        "Successfully deleted the role from db."));
+        try {
+            roleService.deleteRole(id);
+            return ResponseEntity.status(HttpStatus.OK).body(
+                            new ModelMap().addAttribute("msg",
+                                            "Successfully deleted the role from db."));
+        } catch (final RoleNotFoundException ex) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(
+                            new ModelMap().addAttribute("msg", ex.getMessage()));
+        } catch (final InvalidInput ex) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(
+                            new ModelMap().addAttribute("msg", ex.getMessage()));
+        }
     }
 
     @PutMapping(value = "/update/{id}")
     public ResponseEntity<?> updateRole(@RequestBody RoleUpdateRequest roleUpdateRequest,
                     @PathVariable(value = "id", required = true) String id) throws Exception {
-        roleService.updateRole(roleUpdateRequest, id);
-        return ResponseEntity.status(HttpStatus.OK)
-                        .body(new ModelMap().addAttribute("response", "Successfully updated."));
+        try {
+            roleService.updateRole(roleUpdateRequest, id);
+            return ResponseEntity.status(HttpStatus.OK)
+                            .body(new ModelMap().addAttribute("response", "Successfully updated."));
+        } catch (final RoleNotFoundException ex) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                            .body(new ModelMap().addAttribute("msg", ex.getMessage()));
+        } catch (final TenantNotFoundException ex) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                            .body(new ModelMap().addAttribute("msg", ex.getMessage()));
+        }
     }
 }

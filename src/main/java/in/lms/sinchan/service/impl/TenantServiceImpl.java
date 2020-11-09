@@ -67,13 +67,14 @@ public class TenantServiceImpl implements TenantService {
 
     @Override
     public List<Tenant> getAllTenants() {
-        return tenantRepository.findAll();
+        return tenantRepository.findTenantByIsActive(true);
     }
 
     @Override
     public void deleteTenant(String id) throws Exception {
         Tenant tenant = getTenant(id);
-        tenantRepository.delete(tenant);
+        tenant.setActive(false);
+        tenantRepository.save(tenant);
         return;
     }
 
