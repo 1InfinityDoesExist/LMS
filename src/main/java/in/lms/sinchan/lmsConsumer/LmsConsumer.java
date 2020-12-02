@@ -18,35 +18,32 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class LmsConsumer {
 
-    public LmsConsumer() {
-        log.info(":::::LmsConsumer Constructor::::");
-    }
+	public LmsConsumer() {
+		log.info(":::::LmsConsumer Constructor::::");
+	}
 
-    @Autowired
-    private StudentRepository studentRepository;
+	@Autowired
+	private StudentRepository studentRepository;
 
-    @Autowired
-    private EmailService emailService;
+	@Autowired
+	private EmailService emailService;
 
-    @KafkaListener(topics = "bookTopic",
-                    containerFactory = "concurrentKafkaListenerContainerFactory")
-    public void consumes(ConsumerRecord<String, String> consumerRecord) throws ParseException {
-        log.info("-----Inside LmsConsumer Class, consume method----");
-        JSONObject jsonObject =
-                        (JSONObject) new JSONParser().parse(consumerRecord.value().toString());
-        log.info(":::::consumerValue {}", jsonObject);
-        String bookId = (String) jsonObject.get("id");
-        log.info(":::::bookId :  {}", bookId);
-        List<Student> listOfStudent = studentRepository.findStudentByBookId(bookId);
-        log.info(":::::listOfStudent :{}", listOfStudent);
-        listOfStudent.stream().forEach(student -> {
-            emailService.sendMail(new ModelMap().addAttribute("to", student.getEmail())
-                            .addAttribute("subject", "Your most awaited book available in LMS")
-                            .addAttribute("body", "Book Name :" + jsonObject.get("bookName")
-                                            + " version : " + jsonObject.get("version")
-                                            + " is available now in LMS. Hurry there are only few available."));
-        });
+	@KafkaListener(topics = "bookTopic", containerFactory = "concurrentKafkaListenerContainerFactory")
+	public void consumes(ConsumerRecord<String, String> consumerRecord) throws ParseException {
+		log.info("-----Inside LmsConsumer Class, consume method----");
+		JSONObject jsonObject = (JSONObject) new JSONParser().parse(consumerRecord.value().toString());
+		log.info(":::::consumerValue {}", jsonObject);
+		String bookId = (String) jsonObject.get("id");
+		log.info(":::::bookId :  {}", bookId);
+		List<Student> listOfStudent = studentRepository.findStudentByBookId(bookId);
+		log.info(":::::listOfStudent :{}", listOfStudent);
+		listOfStudent.stream().forEach(student -> {
+			emailService.sendMail(new ModelMap().addAttribute("to", student.getEmail())
+					.addAttribute("subject", "Your most awaited book available in LMS").addAttribute("body",
+							"Book Name :" + jsonObject.get("bookName") + " version : " + jsonObject.get("version")
+									+ " is available now in LMS. Hurry there are only few available."));
+		});
 
-    }
+	}
 
 }
