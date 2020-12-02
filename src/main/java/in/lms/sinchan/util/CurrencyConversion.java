@@ -3,9 +3,9 @@ package in.lms.sinchan.util;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.net.URLConnection;
 import java.util.Map;
 import java.util.TreeMap;
 
@@ -35,8 +35,13 @@ public class CurrencyConversion {
 		try {
 			URL url = new URL("https://www.amdoren.com/api/currency.php?api_key=KyV4wEsRjQJdnTgSfmFT8dLuYpaWJP&from="
 					+ curFrom + "&to=" + curTo + "&amount=" + amount);
-			URLConnection urlConnection = url.openConnection();
+			HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
+			if (urlConnection.getResponseCode() != 200) {
+				log.info(":::::Failed to connect to the URL");
+			}
+			urlConnection.setRequestMethod("GET");
 			BufferedReader bufferReader = new BufferedReader(new InputStreamReader(urlConnection.getInputStream()));
+
 			buffer = new StringBuffer();
 			String input = "";
 			while ((input = bufferReader.readLine()) != null) {
@@ -64,7 +69,13 @@ public class CurrencyConversion {
 		Double dollerRate = null;
 		try {
 			URL url = new URL("https://api.currencyfreaks.com/latest?apikey=ec57f1acb5334a928e342fe8cc00a17b");
-			URLConnection urlConnection = url.openConnection();
+			HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
+			if (urlConnection.getResponseCode() != 200) {
+				log.info("::::::Failed to connect to the given url::::::");
+				return null;
+			}
+			urlConnection.setReadTimeout(10000);
+			urlConnection.setRequestMethod("GET");
 			BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(urlConnection.getInputStream()));
 			buffer = new StringBuffer();
 			String input = "";
@@ -95,7 +106,12 @@ public class CurrencyConversion {
 		String finalData;
 		try {
 			URL url = new URL("https://restcountries.eu/rest/v2/all");
-			URLConnection urlConnection = url.openConnection();
+			HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
+			urlConnection.setRequestMethod("GET");
+			if (urlConnection.getResponseCode() != 200) {
+				log.info("::::::Failed to connect to the given url::::::");
+				return;
+			}
 			BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(urlConnection.getInputStream()));
 			String input;
 			buffer = new StringBuffer();

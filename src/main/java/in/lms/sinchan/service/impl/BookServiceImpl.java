@@ -332,4 +332,10 @@ public class BookServiceImpl implements BookService {
 		List<Book> books = bookRepository.findBookByIsIssued(true);
 		return books.stream().map(Book::getId).collect(Collectors.toList());
 	}
+
+	@Override
+	public void clearCache() {
+		// TODO Auto-generated method stub
+		
+	}
 }
